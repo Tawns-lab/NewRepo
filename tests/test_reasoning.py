@@ -1,3 +1,5 @@
+import unittest
+
 from phonemic_reasoning_engine import Lexicon, PhonemicReasoningEngine
 
 
@@ -13,18 +15,21 @@ def make_engine():
     return PhonemicReasoningEngine(lexicon)
 
 
-def test_context_disambiguates_homophone():
-    result = make_engine().reason(["N", "AY", "T"], context=["castle", "armor"])
-    assert result.hypotheses[0].word == "knight"
+class ReasoningTests(unittest.TestCase):
+    def test_context_disambiguates_homophone(self):
+        result = make_engine().reason(["N", "AY", "T"], context=["castle", "armor"])
+        self.assertEqual(result.hypotheses[0].word, "knight")
+
+    def test_prior_breaks_uncontextualized_homophone_tie(self):
+        result = make_engine().reason(["N", "AY", "T"])
+        self.assertEqual(result.hypotheses[0].word, "night")
+
+    def test_near_phoneme_match_is_retained(self):
+        result = make_engine().reason(["P", "AE", "T"])
+        words = [candidate.word for candidate in result.hypotheses]
+        self.assertIn("pat", words)
+        self.assertIn("bat", words)
 
 
-def test_prior_breaks_uncontextualized_homophone_tie():
-    result = make_engine().reason(["N", "AY", "T"])
-    assert result.hypotheses[0].word == "night"
-
-
-def test_near_phoneme_match_is_retained():
-    result = make_engine().reason(["P", "AE", "T"])
-    words = [candidate.word for candidate in result.hypotheses]
-    assert "pat" in words
-    assert "bat" in words
+if __name__ == "__main__":
+    unittest.main()
